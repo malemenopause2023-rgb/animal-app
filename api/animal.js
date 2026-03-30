@@ -30,14 +30,20 @@ ${answers.map((a, i) => `質問${i+1}: ${a}`).join('\n')}
       }]
     })
 
-  await supabase.from('animals').insert({
-  answers: JSON.stringify(answers),
-  animal: json.animal,
-  emoji: json.emoji,
-  description: json.description
-})
+    const text = message.content[0].text
+    const clean = text.replace(/```json|```/g, '').trim()
+    const json = JSON.parse(clean)
 
-res.status(200).json(json)
+    const { error: dbError } = await supabase.from('animals').insert({
+      answers: JSON.stringify(answers),
+      animal: json.animal,
+      emoji: json.emoji,
+      description: json.description
+    })
+
+    if (dbError) console.error('Supabase error:', dbError)
+
+    res.status(200).json(json)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })
